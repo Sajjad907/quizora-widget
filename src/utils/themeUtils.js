@@ -39,7 +39,8 @@ export const generateThemeStyles = (theme = {}) => {
   const fontUrl = getGoogleFontUrl(t.fontFamily);
 
   // Get shadow preset
-  const shadowVars = getShadowPreset(t.shadowIntensity);
+  const primaryRgb = hexToRgb(t.primaryColor);
+  const shadowVars = getShadowPreset(t.shadowIntensity, primaryRgb);
   
   // Get button style variables
   const buttonVars = getButtonStyleVars(t.buttonStyle, t.primaryColor, t.textColor);
@@ -114,25 +115,31 @@ export const getGoogleFontUrl = (fontFamily) => {
 
 /**
  * Returns shadow CSS variables based on intensity
- * @param {string} intensity - 'soft', 'medium', or 'hard'
+ * @param {string} intensity - 'soft', 'medium', 'hard', or 'none'
+ * @param {string} primaryRgb - Primary color RGB values
  * @return {string} - CSS variables for shadows
  */
-export const getShadowPreset = (intensity = 'medium') => {
+export const getShadowPreset = (intensity = 'medium', primaryRgb = '99, 102, 241') => {
   const presets = {
+    none: {
+      card: 'none',
+      btn: 'none',
+      glow: 'none',
+    },
     soft: {
-      card: '0 2px 8px rgba(0, 0, 0, 0.08)',
-      btn: '0 4px 12px rgba(0, 0, 0, 0.1)',
-      glow: '0 0 20px rgba(99, 102, 241, 0.2)',
+      card: '0 2px 12px rgba(0, 0, 0, 0.05)',
+      btn: '0 4px 12px rgba(0, 0, 0, 0.08)',
+      glow: `0 0 20px rgba(${primaryRgb}, 0.15)`,
     },
     medium: {
-      card: '0 8px 24px rgba(0, 0, 0, 0.15)',
-      btn: '0 4px 16px rgba(99, 102, 241, 0.4)',
-      glow: '0 0 30px rgba(99, 102, 241, 0.3)',
+      card: '0 12px 32px rgba(0, 0, 0, 0.12)',
+      btn: `0 8px 20px rgba(${primaryRgb}, 0.35)`,
+      glow: `0 0 30px rgba(${primaryRgb}, 0.25)`,
     },
     hard: {
-      card: '0 20px 50px rgba(0, 0, 0, 0.3)',
-      btn: '0 8px 24px rgba(99, 102, 241, 0.5)',
-      glow: '0 0 40px rgba(99, 102, 241, 0.5)',
+      card: '0 24px 64px rgba(0, 0, 0, 0.25)',
+      btn: `0 12px 32px rgba(${primaryRgb}, 0.45)`,
+      glow: `0 0 40px rgba(${primaryRgb}, 0.45)`,
     },
   };
 

@@ -69,7 +69,8 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
         const oIdStr = String(optionId);
 
         const currentQuestion = quiz.questions[currentQuestionIndex];
-        const isMultiple = currentQuestion.type === 'multiple_choice' || currentQuestion.allowMultiple;
+        const isMultiple = currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'checkboxes' || currentQuestion.allowMultiple;
+
 
         setAnswers(prev => {
             if (isMultiple) {
@@ -295,10 +296,22 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
         }
     };
 
-    const progress = ((currentQuestionIndex) / quiz.questions.length) * 100;
-    const currentQuestion = quiz.questions[currentQuestionIndex];
-    const activeQId = String(currentQuestion._id || currentQuestion.id);
-    const questionAnswers = answers.filter(a => String(a.questionId) === activeQId);
+    const totalQuestions = quiz.questions?.length || 0;
+    const progress = totalQuestions > 0 ? (currentQuestionIndex / totalQuestions) * 100 : 0;
+    const currentQuestion = totalQuestions > 0 ? quiz.questions[currentQuestionIndex] : null;
+
+    if (viewState === 'quiz' && !currentQuestion) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center space-y-4">
+                <AlertCircle size={40} className="text-yellow-500/50" />
+                <p className="text-white/60 font-medium">This quiz doesn't have any questions yet.</p>
+                <p className="text-white/40 text-sm">Add questions in the admin panel to get started.</p>
+            </div>
+        );
+    }
+
+    const activeQId = currentQuestion ? String(currentQuestion._id || currentQuestion.id) : null;
+    const questionAnswers = currentQuestion ? answers.filter(a => String(a.questionId) === activeQId) : [];
     const isAnswered = questionAnswers.length > 0 || (questionAnswers.some(a => a.value?.trim().length > 0));
     const theme = quiz.theme || {};
 
@@ -320,7 +333,7 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
                         <div
                             className="h-full bg-gradient-primary transition-all duration-700"
                             style={{
-                                width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%`,
+                                width: `${totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0}%`,
                                 transitionTimingFunction: 'var(--quiz-animation)'
                             }}
                         />
@@ -334,7 +347,7 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
                         <div className="flex justify-center">
                             <div className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] glass-card"
                                 style={{ color: 'var(--text-main)', opacity: 0.4 }}>
-                                Step {currentQuestionIndex + 1} of {quiz.questions.length}
+                                Step {currentQuestionIndex + 1} of {totalQuestions}
                             </div>
                         </div>
                     )}
@@ -374,7 +387,7 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
                             transitionTimingFunction: 'var(--quiz-animation)'
                         }}
                     >
-                        {currentQuestionIndex === quiz.questions.length - 1 ? 'See Results' : 'Next Step'}
+                        {currentQuestionIndex === totalQuestions - 1 ? 'See Results' : 'Next Step'}
                         <ChevronRight size={20} />
                     </button>
                 </div>
@@ -408,7 +421,7 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
                                 disabled={!isAnswered}
                                 className={`h-14 px-10 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50 ${isGlassMorph ? 'bg-white text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'btn-primary shadow-xl'}`}
                             >
-                                {currentQuestionIndex === quiz.questions.length - 1 ? 'See Results' : 'Continue'}
+                                {currentQuestionIndex === totalQuestions - 1 ? 'See Results' : 'Continue'}
                                 <ChevronRight size={18} />
                             </button>
                         </div>

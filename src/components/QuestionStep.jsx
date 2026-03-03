@@ -29,8 +29,9 @@ const QuestionStep = ({ question, questionId, onSelectOption, onInputChange, cur
                     <div className="flex justify-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
-                                {question.type === 'multiple_choice' ? 'Multiple Selection' : 'Choose One'}
+                                {(question.type === 'multiple_choice' || question.type === 'checkboxes') ? 'Multiple Selection' : 'Choose One'}
                             </span>
+
                         </div>
                     </div>
                 ) : null}
@@ -50,7 +51,8 @@ const QuestionStep = ({ question, questionId, onSelectOption, onInputChange, cur
 
             {/* Options Grid */}
             <div className={`${hasImages ? 'grid grid-cols-2 gap-4' : 'grid grid-cols-1 gap-3 max-w-2xl mx-auto'} ${isSplitHero ? 'px-6' : ''}`}>
-                {(question.type === 'multiple_choice' || question.type === 'single_choice') ? (
+                {(question.type === 'multiple_choice' || question.type === 'single_choice' || question.type === 'checkboxes') ? (
+
                     question.options?.map((option, idx) => {
                         const optId = String(option.id || option._id);
                         const isSelected = isOptionSelected(optId);

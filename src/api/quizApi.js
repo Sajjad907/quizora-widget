@@ -1,9 +1,26 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api';
+// Dynamically resolve the API base from the script tag's src origin.
+// This means: local dev (localhost:5000) → hits local server,
+// Production (Vercel) → hits Vercel server. No hardcoding needed.
+const getApiBase = () => {
+  const scriptTag =
+    document.currentScript ||
+    document.querySelector('script[src*="quizora-widget"]');
+  if (scriptTag?.src) {
+    try {
+      const origin = new URL(scriptTag.src).origin;
+      return `${origin}/api`;
+    } catch (_) {}
+  }
+  // Fallback for development
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE = getApiBase();
 
 export const getQuiz = async (handle) => {
-  const res = await axios.get(`${API_BASE}/quizzes/${handle}`);
+  const res = await axios.get(`${API_BASE}/quizzes/widget/${handle}`);
   return res.data;
 };
 
