@@ -102,46 +102,7 @@ const ResultStep = ({ outcome, products, scores, theme, onRetake }) => {
                         </div>
                     </div>
 
-                    {/* ===== MATCH ANALYSIS SECTION ===== */}
-                    {scores && Object.keys(scores).length > 0 && (
-                        <div className="space-y-8 animate-quiz-smooth">
-                            <div className="flex items-center justify-between px-2">
-                                <div className="space-y-1">
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: 'rgba(var(--text-main-rgb), 0.3)' }}>Analysis Report</h3>
-                                    <div className="h-0.5 w-8 bg-primary/40 rounded-full" />
-                                </div>
-                                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 border border-black/10">
-                                    <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'rgba(var(--text-main-rgb), 0.4)' }}>AI Verified Correlation</span>
-                                </div>
-                            </div>
-
-                            <div className={`rounded-[2.5rem] p-8 md:p-12 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10 relative overflow-hidden shadow-2xl ${isGlassMorph ? 'bg-white/[0.03] backdrop-blur-3xl border-white/10' : 'bg-white/[0.02] border border-white/5'}`}>
-                                {Object.entries(scores).map(([key, val], idx) => (
-                                    <div key={key} className="space-y-4 group">
-                                        <div className="flex justify-between items-end">
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-black uppercase tracking-widest block" style={{ color: 'rgba(var(--text-main-rgb), 0.3)' }}>Factor {idx + 1}</span>
-                                                <span className="text-base font-bold capitalize" style={{ color: 'rgba(var(--text-main-rgb), 0.9)' }}>{key}</span>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className="text-lg font-black text-primary leading-none">{val}%</span>
-                                                <StarRating score={val} />
-                                            </div>
-                                        </div>
-                                        <div className="h-1.5 w-full rounded-full bg-white/5 relative overflow-hidden">
-                                            <div className="h-full rounded-full transition-all duration-1000 ease-out delay-300"
-                                                style={{
-                                                    width: `${val}%`,
-                                                    background: 'linear-gradient(to right, var(--primary), var(--accent))',
-                                                    boxShadow: `0 0 15px rgba(var(--primary-rgb), 0.4)`
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    {/* ===== MATCH ANALYSIS SECTION (Removed as requested) ===== */}
 
                     {/* ===== PRODUCT DISCOVERY ===== */}
                     <div className="space-y-10 md:space-y-16">
@@ -199,14 +160,14 @@ const ResultStep = ({ outcome, products, scores, theme, onRetake }) => {
                                                             <span className="text-[8px] font-bold uppercase tracking-widest">530 Reviews</span>
                                                         </div>
                                                     </div>
-                                                    <div className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center text-black/20 group-hover:text-primary group-hover:bg-primary/10 transition-all">
+                                                    <button onClick={() => window.open(prod.shopUrl || 'https://www.dermamage.com/', '_blank')} className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center text-black/20 group-hover:text-primary group-hover:bg-primary/10 transition-all">
                                                         <ShoppingBag size={18} />
-                                                    </div>
+                                                    </button>
                                                 </div>
                                             </div>
 
-                                            <button className="w-full py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] shadow-xl">
-                                                Finalize Selection
+                                            <button onClick={() => window.open(prod.shopUrl || 'https://www.dermamage.com/', '_blank')} className="w-full py-4 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] shadow-xl">
+                                                Add to Cart
                                             </button>
                                         </div>
                                     </div>
@@ -247,7 +208,7 @@ const ResultStep = ({ outcome, products, scores, theme, onRetake }) => {
                         <RefreshCcw size={20} />
                     </button>
 
-                    <button className="flex-1 h-16 bg-white text-black rounded-2xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-white/10 transition-all hover:bg-white/90 active:scale-[0.98] flex items-center justify-center gap-3">
+                    <button onClick={() => window.open('https://www.dermamage.com/', '_blank')} className="flex-1 h-16 bg-white text-black rounded-2xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-white/10 transition-all hover:bg-white/90 active:scale-[0.98] flex items-center justify-center gap-3">
                         <ShoppingBag size={20} />
                         Purchase My Routine
                         <ArrowRight size={18} />
