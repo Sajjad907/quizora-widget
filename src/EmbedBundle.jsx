@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom/client';
 import QuizRunner from './components/QuizRunner';
 import styles from './index.css?inline';
 import { generateThemeStyles } from './utils/themeUtils';
-import { getQuiz } from './api/quizApi';
+import { getQuiz, setApiBase } from './api/quizApi';
 
 // Embed Component Wrapper
-const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const EmbedApp = ({ quizId, triggerSelector, layout, animation, autoOpen, shop }) => {
+  const [isOpen, setIsOpen] = useState(autoOpen || layout === 'inline' || false);
   const [quiz, setQuiz] = useState(null);
   const [themeConfig, setThemeConfig] = useState(null);
 
@@ -46,11 +46,7 @@ const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
   // Auto-scroll to widget when opened (especially for inline layout)
   useEffect(() => {
     if (isOpen && containerRef.current) {
-      // Only scroll if layout is 'inline' or 'modal' (to ensure visibility)
-      // For fullscreen, it covers everything anyway.
-      // But 'inline' is the critical one.
       const effectiveLayout = quiz?.settings?.defaultLayout || layout || 'modal';
-
       if (effectiveLayout === 'inline') {
         setTimeout(() => {
           containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -60,24 +56,19 @@ const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
   }, [isOpen, quiz, layout]);
 
   useEffect(() => {
-    // 1. Listen for clicks on the trigger selector (outside Shadow DOM)
-    const setupTrigger = () => {
-      console.log('Setting up triggers with selector:', triggerSelector);
+    // 1. Event Delegation for Triggers
+    const handleGlobalClick = (e) => {
       if (triggerSelector) {
-        const triggers = document.querySelectorAll(triggerSelector);
-        console.log('Found triggers:', triggers.length);
-        triggers.forEach(el => {
-          el.addEventListener('click', (e) => {
-            console.log('Trigger clicked');
-            e.preventDefault();
-            setIsOpen(true);
-            console.log('Set isOpen to true');
-          });
-        });
+        const target = e.target.closest(triggerSelector);
+        if (target) {
+          console.log('Quizora Trigger detected via delegation:', triggerSelector);
+          e.preventDefault();
+          setIsOpen(true);
+        }
       }
     };
 
-    setupTrigger();
+    document.addEventListener('click', handleGlobalClick);
 
     // 2. Expose global API
     window.QuizWidget = {
@@ -87,7 +78,7 @@ const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
     };
 
     return () => {
-      // Cleanup if needed
+      document.removeEventListener('click', handleGlobalClick);
     };
   }, [triggerSelector]);
 
@@ -149,7 +140,21 @@ const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
         {/* Quiz Content */}
         <div className="flex-1 w-full relative z-10 min-h-0 flex flex-col">
           {quiz ? (
-            <QuizRunner quizId={quizId} initialQuiz={quiz} />
+            quiz.merchantStatus !== 'ACTIVE' ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
+                <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center">
+                  <span className="text-rose-500 text-2xl">⚠️</span>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-white">Subscription Expired</h3>
+                  <p className="text-white/60 text-sm max-w-xs mx-auto">
+                    The merchant's subscription for this quiz has expired. Please contact the store owner.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <QuizRunner quizId={quizId} initialQuiz={quiz} shop={shop} />
+            )
           ) : (
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -169,93 +174,99 @@ const EmbedApp = ({ quizId, triggerSelector, layout, animation }) => {
 };
 
 // Initialize Logic
-const init = () => {
-  // Find the script tag that loaded this file to read attributes
-  const scriptTag = document.currentScript || document.querySelector('script[src*="widget"]');
-  const quizId = scriptTag?.getAttribute('data-quiz-id') || '698f06bb22c36a54f38075a7';
-  const triggerSelector = scriptTag?.getAttribute('data-trigger') || 'button[data-quiz-trigger]';
-  const layout = scriptTag?.getAttribute('data-layout') || 'modal'; // modal, fullscreen, inline
-  const animation = scriptTag?.getAttribute('data-animation') || 'scale-up'; // scale-up, fade-in, slide-up
+const initializeQuiz = (scriptTag) => {
+  if (scriptTag.dataset.quizInitialized === 'true') return;
+  
+  const quizId = scriptTag.getAttribute('data-quiz-id');
+  if (!quizId) return;
 
-  // Create a container (Host)
+  scriptTag.dataset.quizInitialized = 'true';
+
+  const serverUrl = scriptTag.getAttribute('data-server-url') || (scriptTag.src ? new URL(scriptTag.src).origin : null);
+  setApiBase(serverUrl);
+
+  const triggerSelector = scriptTag.getAttribute('data-trigger') || 'button[data-quiz-trigger]';
+  const layout = scriptTag.getAttribute('data-layout') || 'modal';
+  const animation = scriptTag.getAttribute('data-animation') || 'scale-up';
+  const autoOpen = scriptTag.getAttribute('data-open') === 'true';
+  const shop = scriptTag.getAttribute('data-shop');
+
+  const timestamp = Math.floor(Math.random() * 1000000);
   const host = document.createElement('div');
-  const timestamp = Date.now();
-  host.id = `quiz-widget-host-${timestamp}`;
+  host.id = `quizora-host-${quizId}-${timestamp}`;
+  host.className = 'quizora-widget-host';
+  host.style.display = (layout === 'inline') ? 'block' : 'contents';
 
-  // Decide where to mount:
-  // If script tag exists and has a parent that is not head, mount after script.
-  // Otherwise append to body.
-  if (scriptTag && scriptTag.parentNode && scriptTag.parentNode.tagName !== 'HEAD') {
+  if (scriptTag.parentNode) {
     scriptTag.parentNode.insertBefore(host, scriptTag.nextSibling);
   } else {
     document.body.appendChild(host);
   }
 
-  // Make host ID available globally for potential scrolling usage (though we use ref now)
-  window.quizWidgetHostId = timestamp;
-
-  // Attach Shadow DOM
   const shadow = host.attachShadow({ mode: 'open' });
 
-  // Inject Base Styles
   const styleTag = document.createElement('style');
   styleTag.textContent = styles;
   shadow.appendChild(styleTag);
 
-  // Create a style tag for dynamic theme variables (will be updated when quiz loads)
   const themeStyleTag = document.createElement('style');
   themeStyleTag.id = 'theme-variables';
   shadow.appendChild(themeStyleTag);
 
-  // Create a link tag for Google Fonts (will be updated when quiz loads)
   const fontLink = document.createElement('link');
   fontLink.rel = 'stylesheet';
   fontLink.id = 'google-fonts';
   shadow.appendChild(fontLink);
 
-  // Mount Point for React
   const mountPoint = document.createElement('div');
   shadow.appendChild(mountPoint);
 
-  // Create React root
   const root = ReactDOM.createRoot(mountPoint);
 
-  // Render with configuration
-  const renderApp = () => {
-    root.render(
-      <EmbedApp
-        quizId={quizId}
-        triggerSelector={triggerSelector}
-        layout={layout}
-        animation={animation}
-      />
-    );
-  };
-
-  // Listen for theme updates from the app
   window.addEventListener('quiz-theme-loaded', (event) => {
     const { cssVariables, fontUrl } = event.detail;
-
-    // Update theme variables
-    if (cssVariables) {
-      themeStyleTag.textContent = `:host { ${cssVariables} }`;
-    }
-
-    // Update Google Fonts
-    if (fontUrl) {
-      fontLink.href = fontUrl;
-    }
+    if (cssVariables) themeStyleTag.textContent = `:host { ${cssVariables} }`;
+    if (fontUrl) fontLink.href = fontUrl;
   });
 
-  renderApp();
-
-  console.log("Quiz Widget Initialized (Shadow DOM) for ID:", quizId);
-  console.log("Mounting approach:", scriptTag && scriptTag.parentNode.tagName !== 'HEAD' ? "After Script" : "Body Append");
+  root.render(
+    <EmbedApp
+      quizId={quizId}
+      triggerSelector={triggerSelector}
+      layout={layout}
+      animation={animation}
+      autoOpen={autoOpen}
+      shop={shop}
+    />
+  );
+  
+  console.log(`[Quizora] Initialized widget: ${quizId} for shop: ${shop}`);
 };
 
-// Auto-run
+// Global scanner
+const scanAndInit = () => {
+  const scriptTags = document.querySelectorAll('script[src*="widget.js"]');
+  scriptTags.forEach(initializeQuiz);
+};
+
+// Robust auto-run
+const setup = () => {
+  scanAndInit();
+
+  const observer = new MutationObserver((mutations) => {
+    let shouldScan = false;
+    mutations.forEach(m => {
+      if (m.addedNodes.length > 0) shouldScan = true;
+    });
+    if (shouldScan) scanAndInit();
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  setInterval(scanAndInit, 2000);
+};
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', setup);
 } else {
-  init();
+  setup();
 }
