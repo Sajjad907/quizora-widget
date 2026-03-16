@@ -7,7 +7,7 @@ const QuizPage = () => {
   const { handle } = useParams();
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-6 md:py-12 animate-fade-in">
-      <div className="premium-card rounded-3xl overflow-hidden min-h-[500px] border border-white/5">
+      <div className="premium-card rounded-3xl overflow-hidden min-h-[500px]">
         <QuizRunner quizId={handle} key={handle} />
       </div>
     </div>
@@ -64,9 +64,42 @@ const Home = () => {
 };
 
 function App() {
+  const [themeStyles, setThemeStyles] = useState({
+    cssVariables: '',
+    fontUrl: '',
+    fontFamily: ''
+  });
+
+  React.useEffect(() => {
+    const handleTheme = (event) => {
+       const { cssVariables, fontUrl, fontFamily } = event.detail;
+       setThemeStyles({ cssVariables, fontUrl, fontFamily });
+
+       if (fontUrl) {
+         let link = document.getElementById('quiz-google-fonts');
+         if (!link) {
+           link = document.createElement('link');
+           link.id = 'quiz-google-fonts';
+           link.rel = 'stylesheet';
+           document.head.appendChild(link);
+         }
+         link.href = fontUrl;
+       }
+    };
+
+    window.addEventListener('quiz-theme-loaded', handleTheme);
+    return () => window.removeEventListener('quiz-theme-loaded', handleTheme);
+  }, []);
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col items-center bg-[#0a0a0b] text-white">
+      <style>{`:root { ${themeStyles.cssVariables} }`}</style>
+      <div className="min-h-screen flex flex-col items-center transition-colors duration-500" 
+           style={{ 
+             backgroundColor: 'var(--bg-main, #0a0a0b)', 
+             color: 'var(--text-main, #ffffff)',
+             fontFamily: 'var(--font-main, Inter)'
+           }}>
         {/* Subtle Background Effects */}
         <div className="fixed inset-0 pointer-events-none">
            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-5xl bg-blue-600/5 blur-[120px] rounded-full opacity-50" />

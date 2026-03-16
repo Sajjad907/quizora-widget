@@ -6,7 +6,7 @@ import EmailStep from './EmailStep';
 import { Sparkles, Loader2, ChevronRight, AlertCircle } from 'lucide-react';
 import { generateThemeStyles } from '../utils/themeUtils';
 
-const QuizRunner = ({ quizId, initialQuiz }) => {
+const QuizRunner = ({ quizId, initialQuiz, shop }) => {
     const [quiz, setQuiz] = useState(initialQuiz || null);
     const [loading, setLoading] = useState(!initialQuiz);
     const [error, setError] = useState(null);
@@ -275,7 +275,7 @@ const QuizRunner = ({ quizId, initialQuiz }) => {
     }
 
     if (viewState === 'result' && result) {
-        return <ResultStep outcome={result.outcome} products={result.products} scores={result.scoreDetails} theme={quiz.theme} />;
+        return <ResultStep outcome={result.outcome} products={result.products} scores={result.scoreDetails} theme={quiz.theme} shop={shop} />;
     }
 
     if (viewState === 'email') {
