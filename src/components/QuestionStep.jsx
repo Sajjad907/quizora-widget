@@ -91,10 +91,10 @@ const QuestionStep = ({ question, questionId, onSelectOption, onInputChange, cur
                                 key={optId}
                                 type="button"
                                 onClick={() => onSelectOption(questionId, optId)}
-                                className={`group flex items-center gap-6 p-6 transition-all duration-300 border-2 ${isSplitHero ? 'rounded-2xl' : isGlassMorph ? 'rounded-[2.5rem] backdrop-blur-2xl' : 'rounded-[2rem]'}`}
+                                className={`group flex items-center gap-6 p-6 transition-all duration-500 border-2 ${isSplitHero ? 'rounded-2xl' : isGlassMorph ? 'rounded-[2.5rem] backdrop-blur-2xl' : 'rounded-[2.25rem]'} hover:translate-y-[-5px] hover:shadow-xl`}
                                 style={{
-                                    background: isSelected ? (isGlassMorph ? 'rgba(var(--primary-rgb), 0.2)' : 'rgba(var(--primary-rgb), 0.1)') : (isGlassMorph ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)'),
-                                    borderColor: isSelected ? 'var(--primary)' : (isGlassMorph ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)'),
+                                    background: isSelected ? (isGlassMorph ? 'rgba(var(--primary-rgb), 0.2)' : 'rgba(var(--primary-rgb), 0.1)') : (isGlassMorph ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)'),
+                                    borderColor: isSelected ? 'var(--primary)' : (isGlassMorph ? 'rgba(255, 255, 255, 0.15)' : 'rgba(var(--text-main-rgb), 0.15)'),
                                     boxShadow: isSelected ? `0 12px 30px rgba(var(--primary-rgb), ${isGlassMorph ? '0.3' : '0.15'})` : 'none',
                                     transform: isSelected ? 'translateY(-4px)' : 'none',
                                 }}
